@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Labirinto Roxo 💜</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+background:linear-gradient(180deg,#21002f,#3d0057);
+font-family:Arial,sans-serif;
+color:white;
+text-align:center;
+overflow:hidden;
+}
+
+h2{
+padding:15px;
+font-size:24px;
+}
+
+#game{
+background:white;
+border:4px solid #8a2be2;
+border-radius:15px;
+max-width:95vw;
+touch-action:none;
+}
+
+.controles{
+margin-top:15px;
+}
+
+button{
+width:70px;
+height:70px;
+font-size:30px;
+border:none;
+border-radius:15px;
+background:white;
+margin:4px;
+}
+
+#jumpscare{
+display:none;
+position:fixed;
+inset:0;
+background:black;
+z-index:99999;
+justify-content:center;
+align-items:center;
+}
+
+#face{
+width:100vw;
+height:100vh;
+}
+</style>
+</head>
+<body>
+
+<h2>💜 Chegue até o coração 💜</h2>
+
+<canvas id="game"></canvas>
+
+<div class="controles">
+<button onclick="mover(0,-1)">⬆️</button>
+<br>
+<button onclick="mover(-1,0)">⬅️</button>
+<button onclick="mover(1,0)">➡️</button>
+<br>
+<button onclick="mover(0,1)">⬇️</button>
+</div>
+
+<div id="jumpscare">
+<canvas id="face"></canvas>
+</div>
+
+<script>
+
+const mapa=[
+"####################",
+"#P                 #",
+"################## #",
+"#                  #",
+"# ##################",
+"#                  #",
+"################## #",
+"#                  #",
+"# ##################",
+"#                  #",
+"################## #",
+"#                  #",
+"# ##################",
+"#                  #",
+"################## #",
+"#                  #",
+"################## #",
+"#                  #",
+"#                 H#",
+"####################"
+];
+
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+
+const tamanho=20;
+
+canvas.width=mapa[0].length*tamanho;
+canvas.height=mapa.length*tamanho;
+
+let player={
+x:1,
+y:1
+};
+
+function desenhar(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height);
+
+for(let y=0;y<mapa.length;y++){
+
+for(let x=0;x<mapa[y].length;x++){
+
+const c=mapa[y][x];
+
+if(c=="#"){
+ctx.fillStyle="#2b2b2b";
+ctx.fillRect(
+x*tamanho,
+y*tamanho,
+tamanho,
+tamanho
+);
+}
+
+if(c=="H"){
+
+ctx.fillStyle="#ff00ff";
+
+ctx.beginPath();
+ctx.arc(
+x*tamanho+10,
+y*tamanho+10,
+7,
+0,
+Math.PI*2
+);
+ctx.fill();
+
+ctx.beginPath();
+ctx.arc(
+x*tamanho+4,
+y*tamanho+6,
+4,
+0,
+Math.PI*2
+);
+ctx.fill();
+
+ctx.beginPath();
+ctx.arc(
+x*tamanho+16,
+y*tamanho+6,
+4,
+0,
+Math.PI*2
+);
+ctx.fill();
+}
+
+}
+
+}
+
+ctx.fillStyle="#9400D3";
+
+ctx.beginPath();
+ctx.arc(
+player.x*tamanho+10,
+player.y*tamanho+10,
+7,
+0,
+Math.PI*2
+);
+ctx.fill();
+
+}
+
+function desenharRosto(){
+
+const c=document.getElementById("face");
+
+c.width=window.innerWidth;
+c.height=window.innerHeight;
+
+const g=c.getContext("2d");
+
+g.fillStyle="black";
+g.fillRect(0,0,c.width,c.height);
+
+g.fillStyle="white";
+
+g.beginPath();
+g.arc(c.width*0.35,c.height*0.35,70,0,Math.PI*2);
+g.fill();
+
+g.beginPath();
+g.arc(c.width*0.65,c.height*0.35,70,0,Math.PI*2);
+g.fill();
+
+g.fillStyle="black";
+
+g.beginPath();
+g.arc(c.width*0.35,c.height*0.35,30,0,Math.PI*2);
+g.fill();
+
+g.beginPath();
+g.arc(c.width*0.65,c.height*0.35,30,0,Math.PI*2);
+g.fill();
+
+g.strokeStyle="white";
+g.lineWidth=12;
+
+g.beginPath();
+g.arc(
+c.width*0.5,
+c.height*0.65,
+150,
+0.15*Math.PI,
+0.85*Math.PI
+);
+g.stroke();
+}
+
+function susto(){
+
+const tela=document.getElementById("jumpscare");
+
+desenharRosto();
+
+tela.style.display="flex";
+
+navigator.vibrate?.([200,100,200,100,400]);
+
+let i=0;
+
+const pisca=setInterval(()=>{
+
+tela.style.filter=
+i%2?"invert(1)":"none";
+
+i++;
+
+},80);
+
+try{
+
+const audioCtx=
+new(window.AudioContext||
+window.webkitAudioContext)();
+
+const osc=audioCtx.createOscillator();
+const gain=audioCtx.createGain();
+
+osc.type="square";
+osc.frequency.value=850;
+
+gain.gain.value=0.6;
+
+osc.connect(gain);
+gain.connect(audioCtx.destination);
+
+osc.start();
+
+setTimeout(()=>{
+osc.stop();
+},1000);
+
+}catch(e){}
+
+setTimeout(()=>{
+
+clearInterval(pisca);
+
+tela.style.display="none";
+tela.style.filter="none";
+
+},1200);
+
+}
+
+function mover(dx,dy){
+
+const nx=player.x+dx;
+const ny=player.y+dy;
+
+if(
+ny<0||
+ny>=mapa.length||
+nx<0||
+nx>=mapa[0].length
+){
+susto();
+return;
+}
+
+if(mapa[ny][nx]=="#"){
+susto();
+return;
+}
+
+player.x=nx;
+player.y=ny;
+
+if(mapa[player.y][player.x]=="H"){
+
+document.body.innerHTML=`
+<div style="padding:30px">
+
+<h1>💜 Você conseguiu! 💜</h1>
+
+<h2 style="margin-top:20px">
+Depois de passar por todo esse labirinto...
+</h2>
+
+<h1 style="margin-top:20px">
+💜 Quer namorar comigo? 💜
+</h1>
+
+<button
+onclick="aceitou()"
+style="width:auto;height:auto;padding:15px;font-size:28px">
+SIM 💜
+</button>
+
+<button
+id="nao"
+onclick="fugir()"
+ontouchstart="fugir()"
+style="width:auto;height:auto;padding:15px;font-size:28px">
+NÃO 😅
+</button>
+
+</div>
+`;
+
+return;
+}
+
+desenhar();
+
+}
+
+function aceitou(){
+
+document.body.innerHTML=`
+<div style="padding-top:80px">
+<h1 style="font-size:60px">🥰💜</h1>
+<h1>EU TE AMO!</h1>
+<h2>Agora somos oficialmente um casal 💜</h2>
+</div>
+`;
+
+}
+
+function fugir(){
+
+const b=document.getElementById("nao");
+
+b.style.position="fixed";
+
+b.style.left=
+Math.random()*(window.innerWidth-180)+"px";
+
+b.style.top=
+Math.random()*(window.innerHeight-100)+"px";
+
+}
+
+desenhar();
+
+</script>
+</body>
+</html>
